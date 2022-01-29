@@ -1,0 +1,68 @@
+---
+###############################################################################
+# Roundcube Packages
+###############################################################################
+# Roundcube is a browser-based multilingual IMAP client with an
+# application-like user interface. It provides full functionality you expect
+# from an email client, including MIME support, address book, folder
+# manipulation, message searching and spell checking.
+#
+# Install roundcube using the latest public packages. Debian default packages
+# have had broken installs (missing debian-db.php, debian-db-roundcube.php
+# since stretch) and uses apache2. Use NGINX and the latest public version of
+# Roundcube.
+#
+# Reference:
+# * https://roundcube.net/
+# * https://atetux.com/how-to-install-roundcube-webmail-1-4-on-debian-10
+# * https://www.linuxbabe.com/ubuntu/install-roundcube-webmail-ubuntu-20-04-apache-nginx
+
+- name: 'packages | add packages (may take a while)'
+  ansible.builtin.debug:
+    msg: |
+      Packages are being installed. This will take a few minutes.
+
+- name: 'packages | install core dependencies'
+  ansible.builtin.apt:
+    name:  '{{ roundcube_default_packages }}'
+    state: 'latest'
+    update_cache: true
+
+- name: 'core | add php repo key'
+  ansible.builtin.apt_key:
+    url:   'https://packages.sury.org/php/apt.gpg'
+    state: 'present'
+
+- name: 'core | add php repo'
+  ansible.builtin.apt_repository:
+    repo:     'deb https://packages.sury.org/php/ {{ ansible_distribution_release }} main'
+    filename: 'php'
+    state:    'present'
+    update_cache: true
+
+- name: 'core | install php packages'
+  ansible.builtin.apt:
+    name:         '{{ roundcube_default_php_packages }}'
+    state:        'latest'
+    update_cache: true
+
+- name: 'packages | modify pgsql support'
+  ansible.builtin.apt:
+    name:  '{{ roundcube_default_pgsql }}'
+    state: '{% if roundcube_db_type == "pgsql" %}latest{% else %}absent{% endif %}'
+    update_cache: true
+    purge: '{% if roundcube_db_type == "pgsql" %}false{% else %}true{% endif %}'
+
+- name: 'packages | modify mysql support'
+  ansible.builtin.apt:
+    name:  '{{ roundcube_default_mysql }}'
+    state: '{% if roundcube_db_type == "mysql" %}latest{% else %}absent{% endif %}'
+    update_cache: true
+    purge: '{% if roundcube_db_type == "mysql" %}false{% else %}true{% endif %}'
+
+- name: 'packages | modify sqlite support'
+  ansible.builtin.apt:
+    name:  '{{ roundcube_default_sqlite }}'
+    state: '{% if roundcube_db_type == "sqlite" %}latest{% else %}absent{% endif %}'
+    update_cache: true
+    purge: '{% if roundcube_db_type == "sqlite" %}false{% else %}true{% endif %}'

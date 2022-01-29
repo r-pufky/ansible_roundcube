@@ -1,0 +1,62 @@
+---
+###############################################################################
+# Roundcube SQLite Configuration
+###############################################################################
+# Configure or upgrade SQLite installation for roundcube. This assumes that the
+# newest install version is already staged but not yet linked to the live
+# directory.
+#
+# After finishing, the new install will have a DB that is prepped and ready for
+# upgrading.
+#
+# Reference:
+# * https://roundcube.net/
+
+- name: 'sqlite | generating db path information'
+  ansible.builtin.set_fact:
+    _roundcube_sqlite_old:  '{{ roundcube_default_install_dir }}/db/{{ roundcube_db_name }}'
+    _roundcube_sqlite_new:  '{{ _roundcube_install_dir }}/db/{{ roundcube_db_name }}'
+    _roundcube_sqlite_init: '{{ _roundcube_install_dir }}/SQL/sqlite.initial.sql'
+
+- name: 'sqlite | check for existing db'
+  ansible.builtin.stat:
+    path: '{{ _roundcube_sqlite_old }}'
+  register: _roundcube_sqlite_old_stat
+
+- name: 'sqlite | set db location permissions'
+  ansible.builtin.file:
+    path:  '{{ _roundcube_install_dir }}/db'
+    owner: 'root'
+    group: '{{ roundcube_group }}'
+    mode:  0770
+    state: 'directory'
+
+- name: 'sqlite | copy existing db to new version'
+  ansible.builtin.copy:
+    src:   '{{ _roundcube_sqlite_old }}'
+    remote_src: true
+    dest:  '{{ _roundcube_sqlite_new }}'
+    owner: 'root'
+    group: '{{ roundcube_group }}'
+    mode:  0660
+    directory_mode: 0750
+  when: _roundcube_sqlite_old_stat.stat.exists
+
+# sqlite3 init runs interactively. Immediately exit on load.
+- name: 'sqlite | init new db'
+  ansible.builtin.expect:
+    command: 'sqlite3 -init "{{ _roundcube_sqlite_init }}" "{{ _roundcube_sqlite_new }}"'
+    responses:
+      "(.*)sqlite>(.*)": '.quit'
+    echo: true
+    timeout: 60
+  changed_when: false
+  when: not _roundcube_sqlite_old_stat.stat.exists
+
+- name: 'sqlite | set db access perms'
+  ansible.builtin.file:
+    path:  '{{ _roundcube_sqlite_new }}'
+    owner: 'root'
+    group: '{{ roundcube_group }}'
+    mode:  0660
+    state: 'file'

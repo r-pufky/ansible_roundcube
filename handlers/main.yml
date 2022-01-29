@@ -1,0 +1,13 @@
+---
+###############################################################################
+# Roundcube Handlers
+###############################################################################
+
+- name: 'restart nginx-fpm'
+  ansible.builtin.systemd:
+    name:    '{{ item }}'
+    state:   'restarted'
+    enabled: true
+  loop:
+    - 'php{{ roundcube_php_version }}-fpm'
+    - 'nginx'

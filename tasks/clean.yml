@@ -1,0 +1,27 @@
+---
+###############################################################################
+# Remove Old Roundcube Versions
+###############################################################################
+# Remove versioned roundcube directories, excluding the currently set roundcube
+# version.
+#
+# Args:
+#   _roundcube_target: string live roundcube version.
+#   roundcube_delete_old_versions: boolean true to remove older versions.
+
+- name: 'clean | find existing installations'
+  ansible.builtin.find:
+    paths:     '/var/www/html'
+    file_type: 'directory'
+    exclude:   'roundcube'
+    recurse:   false
+  register: _roundcube_existing_installs
+
+- name: 'clean | remove old versions'
+  ansible.builtin.file:
+    path:  '{{ item.path }}'
+    state: 'absent'
+  loop: '{{ _roundcube_existing_installs.files }}'
+  when: |
+    _roundcube_target != item.path.split("-")[-1] and
+    roundcube_delete_old_versions

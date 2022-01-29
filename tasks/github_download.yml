@@ -1,0 +1,74 @@
+---
+###############################################################################
+# Roundcube Github Download
+###############################################################################
+# Download and validate the roundcube package from github, using the specified
+# version.
+#
+# The public key is posted on the roundcube website; downloading from
+# keyservers fail because it does not exist or isn't verified (which fails
+# import directly). Download public key directly from the website and use that.
+#
+# Currently there is no differentiator for stable (1.4) or next-gen (1.5)
+# releases. Latest can potentially be any 1.3, 1.4, 1.5 version; so 'latest'
+# should not be used; though it is still enabled in case the release strucutrue
+# ever changes.
+#
+# Generates:
+#   _roundcube_install_stat: stat object for the versioned install location.
+#
+# Reference:
+# * https://roundcube.net/
+# * https://atetux.com/how-to-install-roundcube-webmail-1-4-on-debian-10
+
+- name: 'download | check local versioned install directory'
+  ansible.builtin.stat:
+    path: '{{ _roundcube_install_dir }}'
+  register: _roundcube_install_stat
+
+- name: 'download | check roundcube public key imported'
+  ansible.builtin.command: 'gpg --list-keys 0x{{ roundcube_gpg_key }}'
+  register: _roundcube_gpg_key_status
+  changed_when: false
+  failed_when: _roundcube_gpg_key_status.rc not in (0, 2)
+
+- name: 'download | download roundcube public key'
+  ansible.builtin.get_url:
+    url:  '{{ roundcube_gpg_key_url }}'
+    dest: '/tmp/roundcube.pub.gpg'
+  register: _roundcube_key
+  until: _roundcube_key is succeeded
+  retries: 5
+  delay: 2
+  when: _roundcube_gpg_key_status.rc != 0
+
+- name: 'download | import roundcube public key'
+  ansible.builtin.command: 'gpg --import /tmp/roundcube.pub.gpg'
+  register: _roundcube_import_key
+  changed_when: '"imported: 1" in _roundcube_import_key.stderr'
+  when: _roundcube_gpg_key_status.rc != 0
+
+- name: 'download | local install not detected'
+  block:
+    - name: 'download | download roundcube'
+      ansible.builtin.get_url:
+        url:  '{{ _roundcube_url }}'
+        dest: '{{ _roundcube_archive }}'
+      register: _roundcube_download
+      until: _roundcube_download is succeeded
+      retries: 5
+      delay: 2
+
+    - name: 'download | download roundcube gpg release signature'
+      ansible.builtin.get_url:
+        url:  '{{ _roundcube_url }}.asc'
+        dest: '{{ _roundcube_archive }}.asc'
+      register: _roundcube_asc
+      until: _roundcube_asc is succeeded
+      retries: 5
+      delay: 2
+
+    - name: 'download | verify archive signature'
+      ansible.builtin.command: 'gpg --verify {{ _roundcube_archive }}.asc {{ _roundcube_archive }}'
+      changed_when: false
+  when: not _roundcube_install_stat.stat.exists

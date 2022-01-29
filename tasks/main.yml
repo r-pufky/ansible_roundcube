@@ -1,0 +1,13 @@
+---
+- ansible.builtin.include_tasks: core.yml
+- ansible.builtin.include_tasks: manage_users.yml
+- ansible.builtin.include_tasks: packages.yml
+- ansible.builtin.include_tasks: gpg_keys.yml
+- ansible.builtin.include_tasks: github_download.yml
+- ansible.builtin.include_tasks: unpack.yml
+- ansible.builtin.include_tasks: fpm.yml
+- ansible.builtin.include_tasks: config.yml
+- ansible.builtin.include_tasks: sqlite.yml
+  when: roundcube_db_type == 'sqlite'
+- ansible.builtin.include_tasks: upgrade.yml
+- ansible.builtin.include_tasks: clean.yml

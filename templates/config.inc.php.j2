@@ -1,0 +1,54 @@
+<?php
+
+// Reference:
+// * https://github.com/roundcube/roundcubemail/wiki/Configuration
+// * config/defaults.inc.php (all values)
+
+// DB
+{% if roundcube_db_type == 'sqlite' %}
+$config['db_dsnw'] = 'sqlite:///{{ _roundcube_install_dir }}/db/{{ roundcube_db_name }}?mode=0660';
+{% else %}
+$config['db_dsnw'] = '{{ roundcube_db_type }}://{{ roundcube_db_user }}:{{ roundcube_db_password }}@{{ roundcube_db_host }}:{{ roundcube_db_port }}/{{ roundcube_db_name }}
+';
+{% endif %}
+
+// IMAP
+$config['default_host'] = '{{ roundcube_imap_host }}';
+$config['default_port'] = {{ roundcube_imap_port }};
+
+// SMTP
+$config['smtp_server'] = '{{ roundcube_smtp_server }}';
+$config['smtp_port'] = {{ roundcube_smtp_port }};
+$config['smtp_user'] = '{{ roundcube_smtp_user }}';
+$config['smtp_pass'] = '{{ roundcube_smtp_pass }}';
+
+// General
+$config['product_name'] = '{{ roundcube_product_name }}';
+$config['support_url'] = '{{ roundcube_support_url }}';
+$config['username_domain'] = '{{ roundcube_username_domain }}';
+$config['language'] = '{{ roundcube_language }}';
+$config['skin'] = '{{ roundcube_skin }}';
+$config['zipdownload_selection'] = {{ roundcube_zipdownload_selection|string|lower }};
+
+// Security
+$config['ip_check'] = {{ roundcube_ip_check|string|lower }};
+$config['des_key'] = '{{ roundcube_des_key }}';
+$config['log_driver'] = '{{ roundcube_log_driver }}';
+$config['log_logins'] = {{ roundcube_log_logins|string|lower }};
+$config['proxy_whitelist'] = {% if roundcube_proxy_whitelist|length > 0 %}['{{ roundcube_proxy_whitelist|join("', '") }}'];{% else %}array();{% endif %}
+
+
+// Plugins
+$config['plugins'] = {% if roundcube_plugins|length > 0 %}['{{ roundcube_plugins|join("', '") }}'];{% else %}array();{% endif %}
+
+
+// Spellcheck
+$config['enable_spellcheck'] = {{ roundcube_enable_spellcheck|string|lower }};
+$config['spellcheck_dictionary'] = '{{ roundcube_spellcheck_dictionary }}';
+
+// Custom options
+{% if roundcube_custom_config|length > 0%}
+{% for key, value in roundcube_custom_config %}
+$config['{{ key }}'] = {{ value }};
+{% endfor %}
+{% endif %}

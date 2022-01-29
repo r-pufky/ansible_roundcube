@@ -1,0 +1,33 @@
+---
+###############################################################################
+# Roundcube Public GPG Keys
+###############################################################################
+# The GPG public key is posted on the roundcube website; downloading from
+# keyservers fail because it does not exist or isn't verified (which fails
+# import directly). Download public key directly from the website and use that.
+#
+# Reference:
+# * https://roundcube.net/download/
+# * https://roundcube.net/download/pubkey.asc
+
+- name: 'gpg | check roundcube public key imported'
+  ansible.builtin.command: 'gpg --list-keys 0x{{ roundcube_gpg_key }}'
+  register: _roundcube_gpg_key_status
+  changed_when: false
+  failed_when: _roundcube_gpg_key_status.rc not in (0, 2)
+
+- name: 'gpg | download roundcube public key'
+  ansible.builtin.get_url:
+    url:  '{{ roundcube_gpg_key_url }}'
+    dest: '/tmp/roundcube.pub.gpg'
+  register: _roundcube_key
+  until: _roundcube_key is succeeded
+  retries: 5
+  delay: 2
+  when: _roundcube_gpg_key_status.rc != 0
+
+- name: 'gpg | import roundcube public key'
+  ansible.builtin.command: 'gpg --import /tmp/roundcube.pub.gpg'
+  register: _roundcube_import_key
+  changed_when: '"imported: 1" in _roundcube_import_key.stderr'
+  when: _roundcube_gpg_key_status.rc != 0

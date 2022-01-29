@@ -1,0 +1,29 @@
+---
+###############################################################################
+# Upgrade Roundcube DB and Link
+###############################################################################
+# Link current version to live directory and run DB upgrade.
+#
+# Args:
+#   _roundcube_target: string live roundcube version.
+
+- name: 'upgrade | link to hosted directory'
+  ansible.builtin.file:
+    src:   '{{ _roundcube_install_dir }}'
+    dest:  '{{ roundcube_default_install_dir }}'
+    owner: 'root'
+    group: '{{ roundcube_group }}'
+    mode:  0750
+    state: 'link'
+  changed_when: false
+
+# update.sh does not have command line options for auto-detect version via db.
+# NOTE: Since complete package is used, all dependency updates are included.
+- name: 'upgrade | upgrade database if needed'
+  ansible.builtin.expect:
+    command: '{{ roundcube_default_install_dir }}/bin/update.sh'
+    responses:
+      "(.*)What version are you upgrading from?(.*)": '?'
+    echo: true
+    timeout: 60
+  changed_when: false

@@ -1,0 +1,49 @@
+---
+###############################################################################
+# Roundcube Core
+###############################################################################
+# Roundcube is a browser-based multilingual IMAP client with an
+# application-like user interface. It provides full functionality you expect
+# from an email client, including MIME support, address book, folder
+# manipulation, message searching and spell checking.
+#
+# Caculate core roundcube variables for installation and upgrade.
+#
+# Generates:
+#   _roundcube_url: string URL to download roundcube release.
+#   _roundcube_url_asc: string URL to download roundcube release signature.
+#   _roundcube_target: string roundcube version number for release (1.5.0).
+#   _roundcube_install_dir: string versioned install directory (full path).
+#   _roundcube_archive: string local tarball file with version (full path).
+#
+# Reference:
+# * https://github.com/roundcube/roundcubemail/releases
+# * https://github.com/roles-ansible/ansible_role_gitea/blob/main/tasks/set_version.yml
+
+- name: 'core | determine latest release version number'
+  block:
+    - name: 'core | get release metadata'
+      ansible.builtin.uri:
+        url: 'https://api.github.com/repos/roundcube/roundcubemail/releases/latest'
+        return_content: true
+      register: _roundcube_remote_metadata
+
+    - name: 'core | set latest release'
+      ansible.builtin.set_fact:
+        _roundcube_remote_version: '{{ _roundcube_remote_metadata.json.tag_name[1:] }}'
+
+    - name: 'core | set version target (latest)'
+      ansible.builtin.set_fact:
+        _roundcube_target: '{{ _roundcube_remote_version }}'
+  when: roundcube_version == 'latest'
+
+- name: 'core | set version target ({{ roundcube_version }})'
+  ansible.builtin.set_fact:
+    _roundcube_target: '{{ roundcube_version }}'
+  when: roundcube_version != 'latest'
+
+- name: 'core | generate roundcube download URL'
+  ansible.builtin.set_fact:
+    _roundcube_url: 'https://github.com/roundcube/roundcubemail/releases/download/{{ _roundcube_target }}/roundcubemail-{{ _roundcube_target }}-complete.tar.gz'
+    _roundcube_install_dir: '{{ roundcube_default_install_dir }}-{{ _roundcube_target }}'
+    _roundcube_archive: '/tmp/roundcube-{{ _roundcube_target }}.tar.gz'

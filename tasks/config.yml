@@ -1,0 +1,41 @@
+---
+###############################################################################
+# Roundcube Configuration
+###############################################################################
+# Configure roundcube and NGINX.
+#
+# Reference:
+# * https://roundcube.net/
+# * https://atetux.com/how-to-install-roundcube-webmail-1-4-on-debian-10
+# * https://pub.nethence.com/www/roundcube
+# * https://forum.iredmail.org/topic13926-urgent-security-fix-required-for-nginx-configured-by-iredmail.html
+# * https://httpoxy.org/
+
+- name: 'config | determine nginx roundcube settings'
+  ansible.builtin.set_fact:
+    _roundcube_nginx_default_delete: '{{ roundcube_nginx_default_delete|default(roundcube_default_nginx_default_delete) }}'
+
+- name: 'config | disable default configuration'
+  ansible.builtin.file:
+    path:  '/etc/nginx/sites-enabled/default'
+    state: 'absent'
+  when: _roundcube_nginx_default_delete
+  notify: 'restart nginx-fpm'
+
+- name: 'config | set roundcube configuration'
+  ansible.builtin.template:
+    src:   'config.inc.php.j2'
+    dest:  '{{ _roundcube_install_dir }}/config/config.inc.php'
+    owner: 'root'
+    group: '{{ roundcube_group }}'
+    mode:  0640
+  notify: 'restart nginx-fpm'
+
+- name: 'config | set nginx configuration'
+  ansible.builtin.template:
+    src:   'nginx.conf.j2'
+    dest:  '/etc/nginx/sites-enabled/roundcube.conf'
+    owner: 'root'
+    group: '{{ roundcube_group }}'
+    mode:  0640
+  notify: 'restart nginx-fpm'

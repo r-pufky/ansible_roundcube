@@ -1,0 +1,63 @@
+---
+###############################################################################
+# Roundcube PHP FPM Configuration
+###############################################################################
+# Configure PHP FPM with appropriate values for hosting roundcube installs,
+# using current limits used with other email providers (25M file limits, etc).
+#
+# Args:
+#   roundcube_defualt_fpm_*: All fpm default configuration values.
+#   roundcube_{FPM *}: All user defined configuration values.
+#
+# Reference:
+# * https://roundcube.net/
+
+- name: 'fpm | set explicit php timezone'
+  ansible.builtin.lineinfile:
+    path:   '/etc/php/{{ roundcube_php_version }}/fpm/php.ini'
+    regexp: 'date.timezone ='
+    line:   "date.timezone = '{{ roundcube_timezone|default(roundcube_default_fpm_timezone) }}'"
+    create: true
+    mode:   0644
+    state:  'present'
+  notify: 'restart nginx-fpm'
+
+- name: 'fpm | set php session garbage collection probability'
+  ansible.builtin.lineinfile:
+    path:   '/etc/php/{{ roundcube_php_version }}/fpm/php.ini'
+    regexp: 'session.gc_probability ='
+    line:   'session.gc_probability = {{ roundcube_session_gc_probability|default(roundcube_default_fpm_session_gc_probability) }}'
+    create: true
+    mode:   0644
+    state:  'present'
+  notify: 'restart nginx-fpm'
+
+- name: 'fpm | set php session strict mode'
+  ansible.builtin.lineinfile:
+    path:   '/etc/php/{{ roundcube_php_version }}/fpm/php.ini'
+    regexp: 'session.use_strict_mode ='
+    line:   'session.use_strict_mode = {{ roundcube_session_use_strict_mode|default(roundcube_default_fpm_session_use_strict_mode) }}'
+    create: true
+    mode:   0644
+    state:  'present'
+  notify: 'restart nginx-fpm'
+
+- name: 'fpm | set php max post size'
+  ansible.builtin.lineinfile:
+    path:   '/etc/php/{{ roundcube_php_version }}/fpm/php.ini'
+    regexp: 'post_max_size ='
+    line:   'post_max_size = {{ roundcube_post_max_size|default(roundcube_default_fpm_post_max_size) }}'
+    create: true
+    mode:   0644
+    state:  'present'
+  notify: 'restart nginx-fpm'
+
+- name: 'fpm | set php upload max filesize'
+  ansible.builtin.lineinfile:
+    path:   '/etc/php/{{ roundcube_php_version }}/fpm/php.ini'
+    regexp: 'upload_max_filesize ='
+    line:   'upload_max_filesize = {{ roundcube_upload_max_filesize|default(roundcube_default_fpm_upload_max_filesize) }}'
+    create: true
+    mode:   0644
+    state:  'present'
+  notify: 'restart nginx-fpm'

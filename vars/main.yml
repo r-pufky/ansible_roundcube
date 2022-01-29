@@ -1,0 +1,117 @@
+---
+###############################################################################
+# Default Roundcube Package Dependencies
+###############################################################################
+# Default required packages for Roundcube install.
+
+# php version used in config paths.
+roundcube_php_version: '8.0'
+
+roundcube_default_packages:
+  - 'gnupg2'
+  - 'aspell'
+  - 'nginx'
+  - 'python3-pexpect' # required for 'expect' usage until update.sh has flag.
+
+roundcube_default_php_packages:
+  - 'php{{ roundcube_php_version }}'
+  - 'php{{ roundcube_php_version }}-cli'
+  - 'php{{ roundcube_php_version }}-gd'
+  - 'php{{ roundcube_php_version }}-intl'
+  - 'php{{ roundcube_php_version }}-fpm'
+  - 'php{{ roundcube_php_version }}-curl'
+  - 'php{{ roundcube_php_version }}-imagick'
+  - 'php{{ roundcube_php_version }}-zip '
+  - 'php{{ roundcube_php_version }}-xml'
+  - 'php{{ roundcube_php_version }}-mbstring'
+  - 'php{{ roundcube_php_version }}-bcmath'
+  - 'php{{ roundcube_php_version }}-pspell'
+
+roundcube_default_pgsql:
+  - 'php{{ roundcube_php_version }}-pgsql'
+
+roundcube_default_mysql:
+  - 'mysql-common'
+  - 'php{{ roundcube_php_version }}-mysql'
+
+roundcube_default_sqlite:
+  - 'sqlite3'
+  - 'php{{ roundcube_php_version }}-sqlite3'
+
+###############################################################################
+# Default Roundcube PHP FPM Settings
+###############################################################################
+# PHP must have the timezone defined to work properly. Default to UTC.
+
+roundcube_default_fpm_timezone: 'UTC'
+roundcube_default_fpm_session_gc_probability:  1
+roundcube_default_fpm_session_use_strict_mode: 1
+roundcube_default_fpm_post_max_size: '25M'
+roundcube_default_fpm_upload_max_filesize: '25M'
+
+###############################################################################
+# Default Roundcube Serving Directory
+###############################################################################
+# The installed version will be symlinked to this directory to be served.
+
+roundcube_default_install_dir: '/var/www/html/roundcube'
+
+###############################################################################
+# Roundcube NGINX Settings
+###############################################################################
+
+# Disable the 'default' site in sites-enabled. Roundcube is hosted on /; and
+# default site (also hosted on /) should be disabled by default. Only change
+# this if manually managing NGINX. roundcube site is written to roundcube.conf.
+roundcube_default_nginx_default_delete: true
+
+###############################################################################
+# Default Roundcube (www-data) User Group
+###############################################################################
+# Default group settings if an www-data user is force created.
+
+roundcube_default_group:
+  name: 'www-data'
+  gid:  33
+
+###############################################################################
+# Default Roundcube (www-data) User Account
+###############################################################################
+# Default user settings if an www-data user is force created.
+#
+# Logins are disabled.
+
+roundcube_default_user:
+  name:            'www-data'
+  group:           'www-data'
+  uid:             33
+  shell:           '/usr/sbin/nologin'
+  home:            '/var/www'
+  comment:         'www-data'
+  create_home:     false
+  password:        '!'
+  password_lock:   true
+  update_password: 'always'
+  expires:         -1
+  system:          true
+  state:           'present'
+
+###############################################################################
+# Roundcube GPG
+###############################################################################
+# GPG keys used to sign roundcube releases.
+#
+# Reference:
+# * https://roundcube.net/download/
+# * https://roundcube.net/download/pubkey.asc
+
+roundcube_gpg_email:     'Roundcube Developers <devs@roundcube.net>'
+roundcube_gpg_key_url:   'https://roundcube.net/download/pubkey.asc'
+roundcube_gpg_key:       '5AB2BAA141C4F7D5'
+
+###############################################################################
+# Roundcube Configuration Version
+###############################################################################
+# Base version used for initial role creation.
+
+roundcube_base_version: '1.5.0'
