@@ -26,28 +26,6 @@
     path: '{{ _roundcube_install_dir }}'
   register: _roundcube_install_stat
 
-- name: 'download | check roundcube public key imported'
-  ansible.builtin.command: 'gpg --list-keys 0x{{ roundcube_gpg_key }}'
-  register: _roundcube_gpg_key_status
-  changed_when: false
-  failed_when: _roundcube_gpg_key_status.rc not in (0, 2)
-
-- name: 'download | download roundcube public key'
-  ansible.builtin.get_url:
-    url:  '{{ roundcube_gpg_key_url }}'
-    dest: '/tmp/roundcube.pub.gpg'
-  register: _roundcube_key
-  until: _roundcube_key is succeeded
-  retries: 5
-  delay: 2
-  when: _roundcube_gpg_key_status.rc != 0
-
-- name: 'download | import roundcube public key'
-  ansible.builtin.command: 'gpg --import /tmp/roundcube.pub.gpg'
-  register: _roundcube_import_key
-  changed_when: '"imported: 1" in _roundcube_import_key.stderr'
-  when: _roundcube_gpg_key_status.rc != 0
-
 - name: 'download | local install not detected'
   block:
     - name: 'download | download roundcube'

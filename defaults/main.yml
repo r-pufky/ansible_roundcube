@@ -48,9 +48,6 @@ roundcube_zipdownload_selection: true
 # Roundcube URL/Proxy Configuration
 ###############################################################################
 
-# Proxy subdomain hint (for other roles).
-roundcube_subdomain: 'roundcube'
-
 # Proxy whitelist (IPs to whitelist for proxy connections)
 roundcube_proxy_whitelist: []
 

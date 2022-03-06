@@ -17,6 +17,8 @@
 # * https://atetux.com/how-to-install-roundcube-webmail-1-4-on-debian-10
 # * https://www.linuxbabe.com/ubuntu/install-roundcube-webmail-ubuntu-20-04-apache-nginx
 
+# TODO(role): Investigate imapproxy to speedup roundcube for remote installs.
+#     https://users.roundcube.narkive.com/TW1q9Kve/rcu-roundcube-with-remote-imap-slow
 - name: 'packages | add packages (may take a while)'
   ansible.builtin.debug:
     msg: |
