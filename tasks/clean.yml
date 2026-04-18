@@ -22,6 +22,6 @@
     path:  '{{ item.path }}'
     state: 'absent'
   loop: '{{ _roundcube_existing_installs.files }}'
-  when: |
+  when: >
     _roundcube_target != item.path.split("-")[-1] and
     roundcube_delete_old_versions

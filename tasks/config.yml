@@ -10,6 +10,7 @@
 # * https://pub.nethence.com/www/roundcube
 # * https://forum.iredmail.org/topic13926-urgent-security-fix-required-for-nginx-configured-by-iredmail.html
 # * https://httpoxy.org/
+# * https://github.com/roundcube/roundcubemail/blob/master/config/defaults.inc.php
 
 - name: 'config | determine nginx roundcube settings'
   ansible.builtin.set_fact:
